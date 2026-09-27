@@ -1,4 +1,21 @@
 """
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         ⚠️  OPTIONAL IMPLEMENTATION ⚠️                        ║
+║                                                                              ║
+║  This file contains ADVANCED algorithms NOT required for the project.       ║
+║                                                                              ║
+║  MANDATORY Requirements (see other files):                                  ║
+║    ✅ Tabular Q-Learning (q_learning_agent.py)                              ║
+║    ✅ Simple DQN with single network (dqn_agent.py)                         ║
+║                                                                              ║
+║  OPTIONAL Extensions (this file):                                           ║
+║    🔬 Double DQN - Reduces Q-value overestimation                           ║
+║    🔬 Dueling DQN - Separate value and advantage streams                    ║
+║    🔬 Prioritized Experience Replay - Importance sampling                   ║
+║                                                                              ║
+║  These are state-of-the-art improvements for demonstration purposes only.   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
 Advanced DQN Approaches - State of the Art
 Optimized for RTX 4060 GPU
 
@@ -191,7 +208,7 @@ class DuelingDQNetwork(nn.Module):
         super().__init__()
 
         # Shared convolutional layers (feature extraction)
-        self.conv1 = nn.Conv2d(12, 32, kernel_size=3, padding=1)
+        self.conv1 = nn.Conv2d(6, 32, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
         self.conv3 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
 

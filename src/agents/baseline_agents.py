@@ -1,4 +1,21 @@
 """
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         ⚠️  OPTIONAL IMPLEMENTATION ⚠️                      ║
+║                                                                              ║
+║  This file contains BASELINE agents NOT required for the project.            ║
+║                                                                              ║
+║  MANDATORY Requirements:                                                     ║
+║    ✅ Tabular Q-Learning (q_learning_agent.py)                               ║
+║    ✅ Simple DQN with single network (dqn_agent.py)                          ║
+║                                                                              ║
+║  OPTIONAL Baselines:                                                         ║
+║    📊 Random Agent - Random action selection (lower bound)                   ║
+║    📊 Greedy Agent - Always moves toward goal (no learning)                  ║
+║    📊 Rule-Based Agent - Hand-coded heuristics (comparison)                  ║
+║                                                                              ║
+║  These are for performance comparison and benchmarking only.                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
 Baseline Agents for Comparison
 Used to evaluate the performance of RL agents against simple strategies
 """

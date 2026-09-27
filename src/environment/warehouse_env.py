@@ -1,3 +1,62 @@
+"""
+Warehouse AMR (Autonomous Mobile Robot) Environment
+
+This module implements a realistic warehouse environment for training
+reinforcement learning agents to control autonomous mobile robots.
+
+Environment Description:
+    The environment simulates a 20x20 grid warehouse with:
+    - Multiple zones (storage, packing, shipping, charging, restricted)
+    - Dynamic entities (humans, forklifts, other robots)
+    - Battery management
+    - Package handling tasks
+    - Safety constraints
+
+Observation Space:
+    Multi-channel grid (20×20×6) containing:
+    - Channel 0: Robot position
+    - Channel 1: Battery level
+    - Channel 2: Current task target zone
+    - Channel 3: Human positions
+    - Channel 4: Forklift positions
+    - Channel 5: Other robot positions
+
+Action Space:
+    Discrete(11):
+    0-3: Move (North, South, East, West)
+    4: Wait
+    5: Pickup package
+    6: Drop package
+    7: Start charging
+    8: Stop charging
+    (Actions 9-10 currently unused)
+
+Reward Structure:
+    Positive rewards:
+        +150: Task completion (drop package at delivery zone)
+        +60: Successful pickup
+        +3: Moving toward goal
+        +5: Start charging at station
+
+    Negative rewards:
+        -1: Time penalty (each step)
+        -5 to -10: Invalid actions
+        -20: Low battery warning
+        -30: Too close to human
+        -40: Collision with robot
+        -50: Zone violation
+        -150: Collision with forklift
+        -200: Collision with human
+        -300: Battery depleted (terminal)
+
+The agent must learn to:
+    1. Navigate efficiently to pickup/delivery zones
+    2. Avoid collisions with humans and forklifts
+    3. Manage battery by charging when needed
+    4. Complete tasks in minimum time
+    5. Follow safety protocols
+"""
+
 import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
@@ -87,7 +146,7 @@ class WarehouseAMREnv(gym.Env):
         self.action_space = spaces.Discrete(11)  # 11 actions
         self.observation_space = spaces.Box(
             low=0, high=1,
-            shape=(self.grid_size, self.grid_size, 12),
+            shape=(self.grid_size, self.grid_size, 6),  # 6 channels: robot, battery, task, humans, forklifts, other robots
             dtype=np.float32
         )
         
@@ -400,43 +459,50 @@ class WarehouseAMREnv(gym.Env):
         return reward
     
     def _get_observation(self) -> np.ndarray:
-        """Generate multi-channel observation"""
-        obs = np.zeros((self.grid_size, self.grid_size, 12), dtype=np.float32)
-        
+        """
+        Generate multi-channel observation
+
+        Returns 6-channel observation grid (20×20×6):
+        - Channel 0: Robot position (binary)
+        - Channel 1: Battery level (normalized 0-1)
+        - Channel 2: Current task target zone (binary mask)
+        - Channel 3: Human positions (binary)
+        - Channel 4: Forklift positions (binary)
+        - Channel 5: Other robot positions (binary)
+        """
+        obs = np.zeros((self.grid_size, self.grid_size, 6), dtype=np.float32)
+
         # Channel 0: Robot position
         obs[self.robot_pos[0], self.robot_pos[1], 0] = 1.0
-        
-        # Channel 1: Battery level
+
+        # Channel 1: Battery level (normalized)
         obs[:, :, 1] = self.battery / 100.0
-        
-        # Channel 2: Current task path
+
+        # Channel 2: Current task target zone
         if self.task_stage == 'pickup':
             zone = self.current_task['pickup']
         else:
             zone = self.current_task['delivery']
         self._mark_zone_in_obs(obs, zone, channel=2)
-        
-        # Channel 3: Humans
+
+        # Channel 3: Human positions
         for human in self.humans:
             x, y = human['pos']
             if 0 <= x < self.grid_size and 0 <= y < self.grid_size:
                 obs[x, y, 3] = 1.0
-        
-        # Channel 4: Forklifts
+
+        # Channel 4: Forklift positions
         for forklift in self.forklifts:
             x, y = forklift['pos']
             if 0 <= x < self.grid_size and 0 <= y < self.grid_size:
                 obs[x, y, 4] = 1.0
-        
-        # Channel 5: Other robots
+
+        # Channel 5: Other robot positions
         for robot in self.other_robots:
             x, y = robot['pos']
             if 0 <= x < self.grid_size and 0 <= y < self.grid_size:
                 obs[x, y, 5] = 1.0
-        
-        # Channels 6-11: Additional features (zones, charging, etc.)
-        # ... (implement as needed)
-        
+
         return obs
     
     # Helper methods
